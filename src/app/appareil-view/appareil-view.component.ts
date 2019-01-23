@@ -1,24 +1,35 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AppareilService } from '../services/appareil.service';
+import { AuthService } from '../services/auth.service';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-appareil-view',
   templateUrl: './appareil-view.component.html',
   styleUrls: ['./appareil-view.component.css']
 })
-export class AppareilViewComponent implements OnInit {
 
-  title = 'my JV blog';
+export class AppareilViewComponent {
+
   isAuth = false;
 
-  appareils: any [];
+  appareils : any[];
+  appareilSubscription: Subscription;
 
-  constructor(private appareilService: AppareilService) {
-    setTimeout( () => {
-      this.isAuth = true;
-    }, 2000
-    );
+  constructor(private appareilService: AppareilService, private authService: AuthService) {
+      this.isAuth = this.authService.isAuth;
   }
+
+  ngOnInit() {
+    this.appareilSubscription = this.appareilService.appareilsSubject.subscribe(
+      (appareils: any[]) => {
+        this.appareils = appareils;
+      }
+    );
+    this.appareilService.getAppareilsFromServer();
+    this.appareilService.emitAppareilSubject();
+  }
+
   onAllumer() {
     this.appareilService.switchOnAll();
    }
@@ -27,8 +38,8 @@ export class AppareilViewComponent implements OnInit {
     this.appareilService.switchOffAll();
    }
 
-  ngOnInit() {
-    this.appareils = this.appareilService.appareils;
-  }
+   onSave() {
+     this.appareilService.saveAppareilsToServer();
+   }
 
 }
